@@ -1,0 +1,32 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/ubuntu/practice/mda/MultiDimArray.h
+vector
+-
+numeric
+-
+cstdarg
+-
+cstddef
+-
+stdexcept
+-
+
+/home/ubuntu/practice/mda/tests.cpp
+MultiDimArray.h
+/home/ubuntu/practice/mda/MultiDimArray.h
+gtest/gtest.h
+-
+boost/multi_array.hpp
+-
+vector
+-
+memory
+-
+
