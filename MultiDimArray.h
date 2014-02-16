@@ -24,6 +24,7 @@ std::vector<size_t> getDimExtents() const;
 //returns the total number of elements (size of the flattened array)
 size_t getTotalSize() const;
 
+//get a reference to the element at the given index
 template <typename ...OtherIndex>
 T& getElement(const size_t firstIndex,const OtherIndex ...otherIndex);
 
@@ -41,6 +42,7 @@ size_t _calcFlatIndex(const std::vector<size_t>& indexes) const;
 };
 
 
+
 template <typename T>
 MultiDimArray<T>::MultiDimArray(const std::vector<size_t>& dimExtents):_dimExtents(dimExtents){
   _init();
@@ -54,7 +56,7 @@ size_t MultiDimArray<T>::getNumDims() const{
 
 template <typename T>
 size_t MultiDimArray<T>::getTotalSize() const{
-//returns a copy of the size of _dimExtents
+//returns a copy of the size of _array
   return _array.size();
 }
 template <typename T>
@@ -65,8 +67,9 @@ std::vector<size_t> MultiDimArray<T>::getDimExtents() const{
 
 template <typename T>
 void MultiDimArray<T>::_init(){
-//loop through _dimExtents checking for non-terminal zero extents and getting
-// their sum (the total size of all of the dimensions flattened into one)
+/*loop through _dimExtents getting their sum (the total size of all of the
+ *  dimensions flattened into one) and checking for non-terminal zero extents
+ */
   size_t totalSize=0;
   for(auto it=_dimExtents.begin();it!=_dimExtents.end();++it){
     if(*it<1 && it!=_dimExtents.end()-1){
