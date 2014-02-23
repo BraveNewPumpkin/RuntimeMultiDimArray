@@ -28,6 +28,9 @@ size_t getTotalSize() const;
 template <typename ...OtherIndex>
 T& getElement(const size_t firstIndex,const OtherIndex ...otherIndex);
 
+//get a reference to the element at the index specified in the vector
+T& getElement(const std::vector<size_t>& indexes);
+
 private:
 std::vector<size_t> _dimExtents;
 std::vector<T> _array;
@@ -86,12 +89,18 @@ template <typename ...OtherIndex> //function's template parameter(s)
 T& MultiDimArray<T>::getElement(const size_t firstIndex,const OtherIndex ...otherIndex){
 //store all indexes in a vector for ease of counting and looping
   std::vector<size_t> indexes{firstIndex,otherIndex...};
+//call the getElement that takes a vector
+  return getElement(indexes);
+}
+
+template <typename T> //class's template parameter(s)
+T& getElement(const std::vector<size_t>& indexes){
+
 //throw error if incorrect number of indexes
   if(indexes.size()!=getNumDims()){
 //throw error
-    throw( MultiDimArrayException("incorrect number of dimensions. Was given "+std::to_string(indexes.size())+" but required "+std::to_string(getNumDims())+"."));
+	throw( MultiDimArrayException("incorrect number of dimensions. Was given "+std::to_string(indexes.size())+" but required "+std::to_string(getNumDims())+"."));
   }
-  
 }
 
 template <typename T> //class's template parameter(s)

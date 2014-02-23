@@ -38,78 +38,88 @@ TEST(MultiDimArraySATest,GetElement_zeroDims_throwsException){
   EXPECT_THROW({zeroDim.getElement(0);},MultiDimArrayException);
 }
 
-//declare boost multi array type for shared pointers to characters
-using fiveDimArrayType=boost::multi_array<std::shared_ptr<char>,numDims>;
+
+
 
 TEST(MultiDimArraySATest,GetElement_fiveDims_works){
 //for ease of syntax to access the number of dims
   const size_t numDims=5;
+//declare boost multi array type for shared pointers to characters
+  using fiveDimArrayType=boost::multi_array<std::shared_ptr<char>,numDims>;
 //create a boost multi array of shared pointers to characters. Using shared pointers so that the MDA can point to the same characters and so memory management is handled automatically.
 //create instance of fiveDimArrayType
-  fiveDimArrayType fiveDimArray(boost::extents[5][3][4][7][1]);
+  fiveDimArrayType boostfiveDimArray(boost::extents[5][3][4][7][1]);
 //create vector of extents for mDA
   std::vector<size_t> dimExtents{5,3,4,7,1};
 //create mDA instance
   MultiDimArray<std::shared_ptr<char> > mDA(dimExtents);
 
-  char charToStore='a';
-  for(size_t curDim=0;curDim<numDims;++curDim){  
+  char initialChar='a';
+  populateParallelArrays<char,fiveDimArrayType>(mDA,boostfiveDimArray,dimExtents,initialChar)
 
-      fiveDimArray[][]=std::make_shared<char>(charToStore++);
-      //mDA.getElement(
-    }
-  }
   //oneDim.getElement(0)=chPtr;
   //EXPECT_EQ(*(oneDim.getElement(0)),*chPtr);
 }
 
 /*
- * funciton to initialize a MultiDimArray.
+ * function to initialize a boost multi array and a MultiDimArray with a shared pointer the same elements
  * template params:
  *  ElementType - type of element to be stored. Must implement the ++ operator.
+ *  boostMultiArrayType - the type of the boost multi array
  * params:
  *  mDA - instance of a MultiDimArray
  *  dimExtents - vector of the size of each dimension
  *  initialValue - what to start element at (will be incremented for each insertion)
 */
-template <typename ElementType>
-void populateMultiDimArray(MultiDimArry& mDA,
+template <typename ElementType,
+          typename boostMultiArrayType>
+void populateParallelArrays(MultiDimArry<std::shared_ptr<ElementType> >& mDA,
+							boostMultiArrayType& boostMultiArray,
 							const std::vector<size_t>& dimExtents,
-							const elementType& initialValue){
-	elementType element=initialValue;
+							const ElementType& initialValue){
+	ElementType element=initialValue;
+//loop through all indexes for current dimension
+	for(size_t index=0;index<dimExtents[0];++index){
 //vector for index at which to start recursion
-	std::vector<size_t> initialIndex{0};
-	_populateMultiDimArrays_recurse(mDA,dimExtents,initialIndex,initialValue);
+		std::vector<size_t> initialIndex{index};
+		_populateMultiDimArrays_recurse(mDA,boostMultiArray,dimExtents,initialIndex,element);
+	}
 }
 
 /*
  * recursive component function of populateMultiDimArray.
  * template params:
  *  ElementType - type of element to be stored. Must implement the ++ operator.
+ *  boostMultiArrayType - the type of the boost multi array
  * params:
  *  mDA - instance of a MultiDimArray
  *  dimExtents - vector of the size of each dimension
  *  currentIndexes - current index.
  *  element - the element to store in the mDA in the base case or increment and pass to next level of recursion in non-base case.
 */
-template <typename elementType>
+template <typename elementType,
+		  typename boostMultiArrayType>
 void _populateMultiDimArrays_recurse(MultiDimArry& mDA,
+							 boostMultiArrayType& boostMultiArray,
 							 const std::vector<size_t>& dimExtents,
-							 const std::vector<size_t>& currentIndexes,
+							 const std::vector<size_t> currentIndexes,
 							 elementType& element){
 //if the number of indexes (number of dimension in which we have specified indexes) is less than the total number of dimensions, we are not in the base case
-	if(currentIndex.size()<dimExtents.size()){
+	size_t currentDimension=currentIndexes.size();
+	if(currentDimension<dimExtents.size()){
 //loop through all indexes for current dimension and recurse on each one
-		for(size_t currentIndex=0;currentIndex<dimExtents[curDim];++currentIndex){
-			//create copy of currentIndexes for adding currentIndex and passing to recursion
-			std::vector<size_t> nextIndexes=currentIndexes;
-			//TODO add currentIndex to nextIndexes and to parameters for _populateMultiDimArrays_recurse
-			//TODO increment element and add to params
-			_populateMultiDimArrays_recurse(mDA,dimExtents)
+		for(size_t currentIndex=0;currentIndex<dimExtents[currentDimension];++currentIndex){
+//create copy of currentIndexes for adding currentIndex and passing to recursion
+			std::vector<size_t> nextIndexes(currentIndexes);
+//add currentIndex to nextIndexes
+			nextIndexes.emplace_back(currentIndex)
+//recursive call
+			_populateMultiDimArrays_recurse(mDA,boostMultiArray,dimExtents,nextIndexes,element)
 		}
 	}else{
-//this is the base case, so we assign element
-		//TODO assign element to mDA at currentIndexes
+//this is the base case, so we assign and increment element to mDA at currentIndexes
+		boostMultiArray(currentIndexes)=std::make_shared<char>(new char(element++));
+		mDA.getElement(currentIndexes)=boostMultiArray(currentIndexes);
 	}
 }
 
